@@ -2,11 +2,9 @@
 from flask import Flask, redirect, url_for, jsonify, request, render_template, session, flash
 from flask_socketio import SocketIO
 from datetime import timedelta
-import mysql.connector
 import datetime
 import secrets
 import socket
-import hashlib
 import json
 
 
