@@ -59,7 +59,7 @@ def signup():
                 BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCS Server (localhost:6969)
 
                 BCN_query = f"AUTH REGISTER !{user_info}" # Sending Login Info to the server for Authentication
-                BCN.send(BCN_query.encode()) # Sends the Query
+                BCN.send(BCN_query.encode("utf-8")) # Sends the Query
 
                 dataString = BCN.recv(4096).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}"
                 
@@ -72,6 +72,8 @@ def signup():
                 elif BCNAuthResponse == "ERROR":
                     errorInfo = json.loads(dataString.split("!")[1])
                     raise Exception (errorInfo["ERROR"])
+                
+                BCN.close()
                 
             except Exception as e:
                 print(e)
@@ -104,7 +106,7 @@ def login():
             BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCS Server (localhost:6969)
             
             BCN_query = f"AUTH LOGIN !{login_info}" # Sending Login Info to the server for Authentication
-            BCN.send(BCN_query.encode()) # Sends the Query
+            BCN.send(BCN_query.encode('utf-8')) # Sends the Query
             
             dataString = BCN.recv(4096).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}"
             
@@ -127,7 +129,9 @@ def login():
             session["EMAIL"] = userInfo["EMAIL"]     # Save EMAIL ADDRESS in Session
             session["ROOMS"] = userInfo["ROOMS"]     # Save ROOMS in Session
             flash('Logged In!')
-                        
+            
+            BCN.close()
+            
         except Exception as e:
             print(e)
             flash("An error occurred while trying to log in.")
@@ -164,7 +168,7 @@ def user():
                 BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCS Server (localhost:6969)
 
                 BCN_query = f"AUTH EMAIL_UPDATE !{email_info}" # Sending New Email Info to the server for Updating
-                BCN.send(BCN_query.encode()) # Sends the Query
+                BCN.send(BCN_query.encode('utf-8')) # Sends the Query
 
                 dataString = BCN.recv(4096).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}"
 
@@ -176,6 +180,8 @@ def user():
                 elif BCNAuthResponse == "ERROR":
                     errorInfo = json.loads(dataString.split("!")[1])
                     raise Exception (errorInfo["ERROR"])
+                
+                BCN.close()
             
             except Exception as e:   # If connection fails it will show an error message
                 flash(f"Connection Error - {e}", "error")
@@ -258,7 +264,7 @@ def newpost(roomname):
         BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain servers
         BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCS Server (localhost:6969)
         
-        BCN.send(dataString.encode("utf-8")) #send json string to blockchain server
+        BCN.send(dataString.encode('utf-8')) #send json string to blockchain server
         
         #print(f"{t}:{roomname} - {NAME}: {message}")
         
@@ -283,5 +289,5 @@ def logout():
 
 
 #socketIO.run(app=app, host='0.0.0.0', port=8080, debug=True)
-#app.run(host = '0.0.0.0', port = 8080, debug = True)
+app.run(host = '0.0.0.0', port = 8080, debug = True)
 

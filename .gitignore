@@ -5,3 +5,5 @@ test.py
 config.py
 test.js
 .vercel
+BlockChainNode/chain.json
+BlockChainNode/wallets.json

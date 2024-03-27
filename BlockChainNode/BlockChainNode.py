@@ -54,7 +54,7 @@ def commands():
         elif cmd == '!stop':
             for server in SERVERS:
                 server.close()
-            quit()
+            SystemExit(0)
 
 #Hashes Password
 def hash_password(passwordToHash:str, salt=None):
@@ -77,7 +77,7 @@ def check_password(passwordToCheck, storedHashOfPassword, storedSalt):
 def HandleServer(SERVER: socket.socket, addr):
     while True:
         try:
-            dataString = SERVER.recv(1024).decode()
+            dataString = SERVER.recv(1024).decode('utf-8')
             print(f"{addr} : {dataString}")
             
             # Sends message back to client

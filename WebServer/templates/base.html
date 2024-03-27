@@ -11,50 +11,34 @@
   <script src="{{ url_for('static', filename='js/postsloading.js') }}"></script>
   <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
   <title>{% block title %}{% endblock %} </title>
-
+  
 </head>
 <body>
 
   <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: purple;">
     
-    <a class="navbar-brand" href="/">Orbit</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDarkDropdown" aria-controls="navbarNavDarkDropdown" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-      <span class="sr-only">Toggle navigation</span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-      <span class="icon-bar"></span>
-      <!--
-
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><button type="button" onclick="login()" class="btn btn-primary mx-2 my-1">Login</button></li>
-            <li class="nav-item"><a class="nav-link active" aria-current="page" href="/login">Login / Sign Up</a></li>
-            <li class="nav-item"><a class="nav-link active" aria-current="page" href="/login">Login / Sign Up</a></li>
-            <li class="nav-item"><a class="btn btn-primary mx-2" href="/login">Login / Sign Up</a></li>
-          </ul>
-        </div>
-      -->
+      <a class="navbar-brand" href="/">Orbit</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-main" aria-controls="navbar-main" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
       </button>
-
-    <div class="collapse navbar-collapse" id="navbarNavDarkDropdown">
+    
+    <div class="collapse navbar-collapse" id="navbar-main">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item active"><a class="nav-link" href="/">Home</a></li>
-
         <!-- The following code displays a list of rooms the user can enter -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDarkDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Rooms
           </a>
           <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
             <div id="dropdownOptionsPlaceholder">
               <script>
-                 // Example: Update dropdown options when the page loads
+                // Example: Update dropdown options when the page loads
                 document.addEventListener('DOMContentLoaded', function() {
-                  var options = JSON.parse('{{ ROOMS | safe}}');  //  Convert Serialized list from python to JS Array object
-                  updateRoomList(options);
+                var options = JSON.parse('{{ ROOMS | safe}}');  //  Convert Serialized list from python to JS Array object
+                updateRoomList(options);
                 });
-            </script>
+              </script>
             </div>
           </ul>
         </li>
@@ -63,7 +47,6 @@
         <li class="nav-item"><a class="nav-link" href="/user/">Profile</a></li>
         <li class="nav-item"><a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a></li>
       </ul>
-    </div>
   </nav>
   
   <div class="container-fluid">
@@ -73,7 +56,6 @@
   
   <div class="bootstrap-cdn-links">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
 

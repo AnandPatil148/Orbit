@@ -63,12 +63,14 @@ class Blockchain():
         
         with open('chain.json', 'r+', encoding='utf-8') as f:
             
-            file_data = json.load(f)
+            file_data = json.load(f) # Load JSON data from file to variable `file_data`
             
             try: 
-                file_data["Blocks"][0]["Index"]
+                file_data["Blocks"][0]["Index"] = genesisBlock.index
+                
                 return genesisBlock
             except:
+                
                 file_data["Blocks"].append(genesisBlock.to_dict())
                 f.seek(0)
                 json.dump(file_data, f, ensure_ascii=False, indent=4)
@@ -86,14 +88,19 @@ class Blockchain():
         
         self.add_block(roomStartBlock, roomBlockOrNot=True)
         
+        #To check whether to add room genesis block to database or not
         with open('chain.json', 'r+', encoding='utf-8') as f:
             
             file_data = json.load(f)
             #Check if room genesis block is present or not
             for i in range(self.get_chain_length()):
-                if "RoomName" in file_data["Blocks"][i]["Data"]:
-                    return None
-                else:
+                if roomname in file_data["Blocks"][i]["Data"]["RoomName"]:
+                    t = (i, True)
+            
+            if t[1]:
+                print("This room already has a Genesis Block.")
+                return False
+            else:
                     print("No Room Found")
             
                     file_data["Blocks"].append(roomStartBlock.to_dict())
@@ -116,6 +123,7 @@ class Blockchain():
         newBlock.hash = newBlock.calculate_hash()
         self.chain.append(newBlock)
         
+        #If not a room genesis block add to global chain data base
         if not roomBlockOrNot:
             with open('chain.json', 'r+', encoding='utf-8') as f:
 
