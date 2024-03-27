@@ -98,7 +98,7 @@ class Blockchain():
                     t = (i, True)
             
             if t[1]:
-                print("This room already has a Genesis Block.")
+                print(f"This room, {roomname}, already has a Genesis Block.")
                 return False
             else:
                     print("No Room Found")
