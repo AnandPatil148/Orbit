@@ -84,8 +84,8 @@ function displayPosts(data)
     footer.innerHTML ="Time posted: "+ new Date(data.TimeStamp).toLocaleString(); 
     card.appendChild(footer);
     
-    card.appendChild(document.createElement("br"));
-    card.appendChild(document.createElement("br"));
+    //card.appendChild(document.createElement("br"));
+    document.appendChild(document.createElement("br"));
 
     // Append to body
     document.getElementById("posts-display").appendChild(card);
