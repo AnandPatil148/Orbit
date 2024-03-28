@@ -85,9 +85,9 @@ function displayPosts(data)
     card.appendChild(footer);
     
     //card.appendChild(document.createElement("br"));
-    document.appendChild(document.createElement("br"));
-
+    
     // Append to body
     document.getElementById("posts-display").appendChild(card);
+    document.getElementById("posts-display").appendChild(document.createElement("br"));
 
 }
