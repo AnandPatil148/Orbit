@@ -6,4 +6,3 @@ config.py
 .vercel
 BlockChainNode/chain.json
 BlockChainNode/wallets.json
-vercel.json
