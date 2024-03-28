@@ -56,7 +56,7 @@ def signup():
             try:
                 
                 BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain Nodes
-                BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCS Server (localhost:6969)
+                BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN (localhost:6969)
 
                 BCN_query = f"AUTH REGISTER !{user_info}" # Sending Login Info to the server for Authentication
                 BCN.send(BCN_query.encode("utf-8")) # Sends the Query
@@ -103,7 +103,7 @@ def login():
         try:
             
             BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain Nodes
-            BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCS Server (localhost:6969)
+            BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)
             
             BCN_query = f"AUTH LOGIN !{login_info}" # Sending Login Info to the server for Authentication
             BCN.send(BCN_query.encode('utf-8')) # Sends the Query
@@ -165,7 +165,7 @@ def user():
             
             try:
                 BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain Nodes
-                BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCS Server (localhost:6969)
+                BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)
 
                 BCN_query = f"AUTH EMAIL_UPDATE !{email_info}" # Sending New Email Info to the server for Updating
                 BCN.send(BCN_query.encode('utf-8')) # Sends the Query
@@ -212,20 +212,25 @@ def room(roomname):
         else:
             
             BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain Nodes
-            BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCS Server (localhost:6969)
+            BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)
             
-            BCNquery = f"GET 1 FROM {roomname}" # Query for getting data from the blockchain
+            BCNquery = f"GET 5 FROM {roomname}" # Query for getting data from the blockchain
             BCN.send(BCNquery.encode('utf-8')) # Sends the Query
-            dataString = BCN.recv(4096).decode('utf-8') # Receive Data from BCS server and decode it into utf-8 format
-            Block = json.loads(dataString)       # Loads into Dictionary form
+            dataString = BCN.recv(4096).decode('utf-8') # Receive Data from BCN and decode it into utf-8 format
             
-            if Block != None:
-                BlockData = Block["Data"]
+            Blocks = json.loads(dataString)       # Loads into List of Dictionaries
+            BlockData = [] 
+            
+            if Blocks != []:
+                for  i in range(len(Blocks)):
+                    BlockData.append(Blocks[i]["Data"]) # Add Data Fields to new list
             else:
                 BlockData = []
             
+            #BlockData = Blocks[0]["Data"]
+            
             BCN.close()
-            return render_template("room.html", roomname = roomname, ROOMS = session["ROOMS"], dataDict = BlockData)
+            return render_template("room.html", roomname = roomname, ROOMS = session["ROOMS"], data_list = BlockData)
 
 
 @app.route("/room/<roomname>/newpost/" , methods=["GET", "POST"])
@@ -262,7 +267,7 @@ def newpost(roomname):
         print(f"MINT "+dataString)
         
         BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain servers
-        BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCS Server (localhost:6969)
+        BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)
         
         BCN.send(dataString.encode('utf-8')) #send json string to blockchain server
         

@@ -220,8 +220,8 @@ def HandleServer(SERVER: socket.socket, addr):
                 Orbit.add_block(block, roomBlockOrNot=False)
             '''
             
-        except socket.error as msg:
-            print (f'{SERVER.getpeername()} has disconnected ')      
+        except Exception as msg:
+            print (f'{SERVER.getpeername()} has disconnected with msg {msg}')      
             SERVERS.remove(SERVER)
             SERVER.close()
             break

@@ -165,13 +165,16 @@ class Blockchain():
         
         return True
     
-    def get_block(self, nOfBlock, roomname) -> dict:
-        blockDict = None
+    def get_block(self, nOfBlock, roomname) -> list:
+        blocksList = []
+        
         for i in range(self.get_chain_length()):
-            block = self.chain[i]
+            if len(blocksList) == nOfBlock:
+                break
+            block = self.chain[-1-i]
             if block.data["RoomName"] == roomname:
-                blockDict = block.to_dict()
-        return blockDict
+                blocksList.append(block.to_dict())
+        return blocksList
     
     def load_chain(self,filename):
         try:

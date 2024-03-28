@@ -16,24 +16,52 @@
 
 <h1 id="h1">WELCOME TO {{roomname}} ROOM</h1>
 
+<a class="btn btn-primary" href="/room/{{roomname}}/newpost/">New Post</a>
+<br>
+<br>
+
+
+<!--
+  
+  <div class="card" style="width: 30rem;">
+    <div class="card-header">
+      <img src="/static/images/Nubs_icon.png" alt="Profile Picture" style="width:15%; height: 15%;">
+      From Acc
+    </div>
+    <div class="card-body">
+      <h5 class="card-title"></h5>
+      <p class="card-text">Message</p>
+      <a href="#" class="btn btn-primary">Comments IG</a>
+    </div>
+    <div class="card-footer text-muted">
+      Time posted: 27/3/2024, 7:11:57 pm
+    </div>
+  </div>
+-->
+
 <!-- Gets recent posts from BCN server -->
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        
-        //Convert Serialized Dictionary in python to JS Dict object
-        //var data = JSON.parse('{"TimeStamp": "2024-03-14 20:58:43", "Roomname": "Lobby", "UserID": 5, "Name": "Test", "Message": "helo"}'); 
-        var data = {{ dataDict | tojson }}; //Prints data sent to html  page as a dict
-        displayPosts(data);
-        
+  document.addEventListener('DOMContentLoaded', function() {
     
-    });
+    //Convert Serialized Dictionary in python to JS Dict object
+    //var data = JSON.parse('{"TimeStamp": "2024-03-14 20:58:43", "Roomname": "Lobby", "UserID": 5, "Name": "Test", "Message": "helo"}'); 
+    var data = {{ data_list | tojson | safe  }}; //Prints data sent to html page as a dict
+    for(var i = 0; i <  data.length; i++)
+    {
+      displayPosts(data[i]);//Display first post by default
+      //displayPosts(data[0]);//Display first post by default
+    }
+  });
 </script>
 
-<div id="posts-display" class="">
-
+<div  class='row'>
+  <div id="posts-display" class="col-sm-4">
+    
+  </div>
 </div>
 
-<a href="/room/{{roomname}}/newpost/">New Post</a>
+<br>
+<a class="btn btn-primary" href="#">Load More Posts (Under Dev)</a>
 
 {% endblock %}
