@@ -83,6 +83,8 @@ function displayPosts(data)
     footer.className = "card-footer text-muted";
     footer.innerHTML ="Time posted: "+ new Date(data.TimeStamp).toLocaleString(); 
     card.appendChild(footer);
+    
+    card.appendChild(document.createElement("br"));
 
     // Append to body
     document.getElementById("posts-display").appendChild(card);
