@@ -4,5 +4,6 @@ testdel.py
 test.py
 config.py
 .vercel
+run.py
 BlockChainNode/chain.json
 BlockChainNode/wallets.json

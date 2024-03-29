@@ -39,12 +39,13 @@ def signup():
         PASSWD = request.form["PASSWD"]
         CPASSWD = request.form["CPASSWD"]
         
-        # Checks that passwords match
-        if PASSWD != CPASSWD:
+        if NAME == "" or EMAIL == "" or PASSWD == "":
+            flash('Please fill out all fields!')
+            
+        # Checks if passwords match
+        elif PASSWD != CPASSWD:
             flash('Passwords do not match!')
             
-        elif NAME == "" or EMAIL == "" or PASSWD == "":
-            flash('Please fill out all fields!')
                 
         else:
             user_info = json.dumps({
@@ -306,5 +307,5 @@ def logout():
 
 
 #socketIO.run(app=app, host='0.0.0.0', port=8080, debug=True)
-app.run(host = '0.0.0.0', port = 8080, debug = True)
+#app.run(host = '0.0.0.0', port = 8080, debug = True)
 

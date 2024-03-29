@@ -52,24 +52,40 @@
     {% endwith %}
 
     <div class="container-fluid">
-        <div class="login-container">
+        <div class="row">
+          <div class="col-md-8 offset-md-2">
+
             <form action="#" method="post">
-        
-                <p>Please Login</p>
-                <p>UserName : </p>
-                <p> <input type="text" name="NAME" placeholder="Enter UserName" /> </p>
-                
-                <p>Password: </p>
-                <p> <input type="password" name="PASSWD" placeholder="Enter Password" /> </p>
-            
-                <p> <input type="submit"  value="Submit"/> </p>
+              <div class="mb-3">
+                <label for="InputUsername" class="form-label">Username</label>
+                <input type="text" class="form-control" id="InputUsername" name="NAME" placeholder="Enter UserName" aria-describedby="usernameHelp">
+                <div id="usernameHelp" class="form-text">Unique username on this platform.</div>
+              </div>
+              <div class="mb-3">
+                <label for="InputPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="InputPassword" name="PASSWD" placeholder="Enter Password" aria-describedby="passwordHelp">
+                <div id="passwordHelp" class="form-text">
+                  Your password must be 8-20 characters long, contain letters and numbers, and must not contain spaces, special characters, or emoji.
+                </div>
+              </div>
+              <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                <label class="form-check-label" for="exampleCheck1">Check me out (doesnt work dw)</label>
+              </div>
+              <button type="submit" class="btn btn-primary" value="submit">Submit</button>
             </form>
+
+            <div class="signup-link">
+              Don't have an account? Click here to <a href="/signup/">Sign Up</a>.
+            </div>
+
+          </div>
         </div>
         
-        <div class="signup-link">
-            Don't have an account? Click here to <a href="/signup/">Sign Up</a>.
-        </div>
+        
     </div>
+
+    
   
     <div class="bootstrap-cdn-links">
       <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-vtXRMe3mGCbOeY7l30aIg8H9p3GdeSe4IFlP6G8JMa7o7lXvnz3GFKzPxzJdPfGK" crossorigin="anonymous"></script>
