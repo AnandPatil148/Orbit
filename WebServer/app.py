@@ -196,7 +196,7 @@ def user():
         return redirect(url_for("login"))
     
     
-@app.route("/room/<roomname>/")
+@app.route("/room/<roomname>")
 def room(roomname):
     #check if user has logged in
     if "USERID" not in session:  
@@ -211,10 +211,22 @@ def room(roomname):
       
         else:
             
+            nOfBlocks = request.args.get("nOfBlocks")
+            
+            #checks if noOfBlocks is null or 0
+            if nOfBlocks == None or nOfBlocks == 'None':
+                nOfBlocks = 3
+            else:
+                try:
+                    nOfBlocks = int(nOfBlocks)
+                except:
+                    flash("Invalid number of blocks entered.", "error")
+                    return redirect(url_for("user"))
+            
             BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain Nodes
             BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)
             
-            BCNquery = f"GET 5 FROM {roomname}" # Query for getting data from the blockchain
+            BCNquery = f"GET {nOfBlocks} FROM {roomname}" # Query for getting data from the blockchain
             BCN.send(BCNquery.encode('utf-8')) # Sends the Query
             dataString = BCN.recv(4096).decode('utf-8') # Receive Data from BCN and decode it into utf-8 format
             
@@ -230,7 +242,7 @@ def room(roomname):
             #BlockData = Blocks[0]["Data"]
             
             BCN.close()
-            return render_template("room.html", roomname = roomname, ROOMS = session["ROOMS"], data_list = BlockData)
+            return render_template("room.html", roomname = roomname, ROOMS = session["ROOMS"], nOfBlocks=nOfBlocks, data_list = BlockData)
 
 
 @app.route("/room/<roomname>/newpost/" , methods=["GET", "POST"])
@@ -294,5 +306,5 @@ def logout():
 
 
 #socketIO.run(app=app, host='0.0.0.0', port=8080, debug=True)
-#app.run(host = '0.0.0.0', port = 8080, debug = True)
+app.run(host = '0.0.0.0', port = 8080, debug = True)
 

@@ -6,7 +6,7 @@ function updateRoomList(data)
     data.forEach(
     function (option)
     {
-        dropdownOptionsHtml += '<li><a class="dropdown-item" href="/room/' + option + '/">' + option + ' Room</a></li>';
+        dropdownOptionsHtml += '<li><a class="dropdown-item" href="/room/' + option + '">' + option + ' Room</a></li>';
     });
 
     // Insert the generated HTML into the placeholder element
