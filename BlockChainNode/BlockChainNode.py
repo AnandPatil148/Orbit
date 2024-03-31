@@ -100,7 +100,7 @@ def HandleServer(SERVER: socket.socket, addr):
                 # Send back the Data in JSON Formated string
                 dataString = json.dumps(data) #convert to JSON Formated string
                 SERVER.send(dataString.encode(encodeFormat)) #sends the data to the SERVER
-                print(f"Data Sent To SERVER {addr}")
+                print(f"{t}: Data Sent To SERVER {addr}")
                 continue
             
             elif dataString.startswith("AUTH"):
@@ -136,7 +136,7 @@ def HandleServer(SERVER: socket.socket, addr):
                         SERVER.send(f"AUTH OK !{response_data}".encode())
                         
                     except Exception as e:
-                        print(e)
+                        print(f"{t}: AUTH Failed - {e}") 
                         eD = json.dumps({
                             "ERROR": str(e),
                             }) 
@@ -168,7 +168,7 @@ def HandleServer(SERVER: socket.socket, addr):
                         
                     except mysql.connector.Error as err:
                         #
-                        print("Failed to insert into MySQL table {}".format(err))
+                        print(f"{t}: Failed to insert into MySQL table {err}")
                         
                         response_data = {"ERROR":"User with this username or email already exists."}
                         SERVER.send(f"AUTH ERROR !{json.dumps(response_data)}".encode())
@@ -223,7 +223,7 @@ def HandleServer(SERVER: socket.socket, addr):
             '''
             
         except Exception as msg:
-            print (f'{SERVER.getpeername()} has disconnected with msg {msg}')      
+            print (f'{t}: {SERVER.getpeername()} has disconnected with msg {msg}')      
             SERVERS.remove(SERVER)
             SERVER.close()
             break
@@ -244,7 +244,7 @@ def receive():
             thread.start()
             
         except socket.error:
-            print(f"{str(address)} DISCONNECTED WITH {address} WITH ERROR : {socket.error}")
+            print(f"{t}: {str(address)} DISCONNECTED WITH {address} WITH ERROR : {socket.error}")
 
 
 
