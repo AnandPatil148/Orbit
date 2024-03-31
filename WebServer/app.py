@@ -176,10 +176,10 @@ def room(roomname):
             
             response = API.get_blocks(nOfBlocks, roomname)
             
-            if  response[0]:
+            if response[0]:
                 BlockData = response[1]
             
-            else
+            else:
                 BlockData = []
             
             return render_template("room.html", roomname = roomname, ROOMS = session["ROOMS"], nOfBlocks=nOfBlocks, data_list = BlockData)
