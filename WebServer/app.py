@@ -216,7 +216,7 @@ def newpost(roomname):
 
         dataString = json.dumps(data) #convert to json string
 
-        print(f"MINT "+dataString)
+        print(f"{NAME}: MINT "+dataString)
         
         BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain servers
         BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)

@@ -77,9 +77,10 @@ def check_password(passwordToCheck, storedHashOfPassword, storedSalt):
 # Function to handle SERVERS' connection
 def HandleServer(SERVER: socket.socket, addr):
     while True:
+        t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         try:
             dataString = SERVER.recv(1024).decode('utf-8')
-            print(f"{addr} : {dataString}")
+            print(f"{t}: {addr} -> {dataString}")
             
             # Sends message back to client
             
@@ -233,7 +234,8 @@ def receive():
     while True:
         
         SERVER, address = server.accept()
-        print(f'Connection is established with {str(address)}')
+        t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f'{t}: Connection is established with {str(address)}')
         try:
             
             SERVERS.append(SERVER)
