@@ -73,6 +73,7 @@ def check_password(passwordToCheck, storedHashOfPassword, storedSalt):
     generated_new_hash = hash_password(passwordToCheck, storedSalt)[0]
     return generated_new_hash == storedHashOfPassword
 
+
 # Function to handle SERVERS' connection
 def HandleServer(SERVER: socket.socket, addr):
     while True:
@@ -128,7 +129,7 @@ def HandleServer(SERVER: socket.socket, addr):
                             "USERID": data[0],
                             "NAME": data[1],
                             "EMAIL": data[2],
-                            "ROOMS": data[5],
+                            "ROOMS": json.loads(data[5]),
                             })
                         
                         SERVER.send(f"AUTH OK !{response_data}".encode())

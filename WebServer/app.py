@@ -6,6 +6,7 @@ import datetime
 import secrets
 import socket
 import json
+import Orbit_API as API
 
 
 app = Flask(__name__)
@@ -54,31 +55,14 @@ def signup():
                 'PASSWD' : PASSWD
             })
             
-            try:
-                
-                BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain Nodes
-                BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN (localhost:6969)
-
-                BCN_query = f"AUTH REGISTER !{user_info}" # Sending Login Info to the server for Authentication
-                BCN.send(BCN_query.encode("utf-8")) # Sends the Query
-
-                dataString = BCN.recv(4096).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}"
-                
-                BCNAuthResponse = dataString.split(" ")[1] # Receives and Stores the Response from the BCN Node
-                
-                if BCNAuthResponse == "OK":
-                    flash('Sign Up Successful! Please Log In Now')
-                    return redirect(url_for('login'))
-                
-                elif BCNAuthResponse == "ERROR":
-                    errorInfo = json.loads(dataString.split("!")[1])
-                    raise Exception (errorInfo["ERROR"])
-                
-                BCN.close()
-                
-            except Exception as e:
-                print(e)
-                #flash('Username Already Taken! Try Again With A Different Username')
+            response = API.sign_up(user_info)   # Sign up with API
+            
+            if  response[0]:
+                flash('Sign Up Successful! Please Log In Now')
+                return redirect(url_for('login'))
+            
+            else:
+                e = response[1]
                 flash(str(e))
                 return render_template("signup.html")
     
@@ -101,48 +85,25 @@ def login():
             'PASSWD' : PASSWD
         })
         
-        try:
-            
-            BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain Nodes
-            BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)
-            
-            BCN_query = f"AUTH LOGIN !{login_info}" # Sending Login Info to the server for Authentication
-            BCN.send(BCN_query.encode('utf-8')) # Sends the Query
-            
-            dataString = BCN.recv(4096).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}"
-            
-            BCNAuthResponse = dataString.split(" ")[1] # Receives and Stores the Response from the BCN Node
-            
-            if BCNAuthResponse == "OK":
-                #do smth
-                userInfo = json.loads(dataString.split("!")[1])   # User Information received from BCN is in JSON format to Python Dictionary
-                print(userInfo)
-                
-            elif BCNAuthResponse == "ERROR":
-                errorInfo = json.loads(dataString.split("!")[1])
-                raise Exception (errorInfo["ERROR"])
-            
-            else:
-                print("Unexpected response from BCN")
-            
+        response = API.login(login_info)       # Login with API
+        
+        if response[0]:
+            userInfo = response[1]
             session["USERID"] = userInfo["USERID"]   # Save USER ID in
             session["NAME"] = userInfo["NAME"]       # Save USER NAME in Session
             session["EMAIL"] = userInfo["EMAIL"]     # Save EMAIL ADDRESS in Session
             session["ROOMS"] = userInfo["ROOMS"]     # Save ROOMS in Session
             flash('Logged In!')
-            
-            BCN.close()
-            
-        except Exception as e:
-            print(e)
-            flash("An error occurred while trying to log in.")
-            flash(f"Error Message - {e}")
-            
+        
+        else:
+            flash("An error occurred while trying to log in.", "error")
+            flash(response[1])
+
         return redirect(url_for("index"))      
      
     else: #If Method is GET
         if "USERID" in session:
-            return redirect(url_for("user"))
+            return redirect(url_for("index"))
 
         else:
             return render_template("login.html")
@@ -160,32 +121,21 @@ def user():
             session["EMAIL"] = EMAIL
             
             email_info = json.dumps({
-                "EMAIL": EMAIL,
-                "USERID": USERID
+                "USERID": USERID,
+                "EMAIL": EMAIL
             })
             
-            try:
-                BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain Nodes
-                BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)
-
-                BCN_query = f"AUTH EMAIL_UPDATE !{email_info}" # Sending New Email Info to the server for Updating
-                BCN.send(BCN_query.encode('utf-8')) # Sends the Query
-
-                dataString = BCN.recv(4096).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}"
-
-                BCNAuthResponse = dataString.split(" ")[1] # Receives and Stores the Response from the BCN Node
-
-                if BCNAuthResponse == "OK":
-                    flash(f"Email Successfully Saved", "info")
-                    
-                elif BCNAuthResponse == "ERROR":
-                    errorInfo = json.loads(dataString.split("!")[1])
-                    raise Exception (errorInfo["ERROR"])
-                
-                BCN.close()
+            response = API.email_update(email_info) 
             
-            except Exception as e:   # If connection fails it will show an error message
-                flash(f"Connection Error - {e}", "error")
+            if response[0]:
+                session["EMAIL"] = EMAIL
+                flash("Email Updated Successfully", "info")
+                
+            else:
+                flash("Failed to Update Email", "error")
+                flash(response[1])
+                
+            return redirect(url_for("profile"))
             
         else:
             if "EMAIL" in session:
@@ -207,7 +157,7 @@ def room(roomname):
         #Check if User can access room
         ROOMS = session["ROOMS"]
         if roomname not in ROOMS: 
-            flash("You don't have permission to view this page.")
+            flash("You don't have permission to view this page."  , "warning")
             return redirect(url_for("index"))
       
         else:
@@ -222,27 +172,16 @@ def room(roomname):
                     nOfBlocks = int(nOfBlocks)
                 except:
                     flash("Invalid number of blocks entered.", "error")
-                    return redirect(url_for("user"))
+                    return redirect(url_for("room", roomname=roomname))
             
-            BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain Nodes
-            BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)
+            response = API.get_blocks(nOfBlocks, roomname)
             
-            BCNquery = f"GET {nOfBlocks} FROM {roomname}" # Query for getting data from the blockchain
-            BCN.send(BCNquery.encode('utf-8')) # Sends the Query
-            dataString = BCN.recv(4096).decode('utf-8') # Receive Data from BCN and decode it into utf-8 format
+            if  response[0]:
+                BlockData = response[1]
             
-            Blocks = json.loads(dataString)       # Loads into List of Dictionaries
-            BlockData = [] 
-            
-            if Blocks != []:
-                for  i in range(len(Blocks)):
-                    BlockData.append(Blocks[i]["Data"]) # Add Data Fields to new list
-            else:
+            else
                 BlockData = []
             
-            #BlockData = Blocks[0]["Data"]
-            
-            BCN.close()
             return render_template("room.html", roomname = roomname, ROOMS = session["ROOMS"], nOfBlocks=nOfBlocks, data_list = BlockData)
 
 

@@ -35,7 +35,7 @@
               <script>
                 // Example: Update dropdown options when the page loads
                 document.addEventListener('DOMContentLoaded', function() {
-                var options = JSON.parse('{{ ROOMS | safe}}');  //  Convert Serialized list from python to JS Array object
+                var options = {{ ROOMS | safe}};  //  Convert Serialized list from python to JS Array object
                 updateRoomList(options);
                 });
               </script>

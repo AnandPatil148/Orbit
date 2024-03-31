@@ -19,6 +19,12 @@ Make a list of all servers. Update when new connection is made everytime
 Allow users to add their own server or node
 Make an API
 Make Forms look good with Bootstrap
+Make a Block Validator 
+Implement Proof of Work Algorithm
+Make a time server 
+Use IPFS instead of File System
+Change UI to be responsive
+Encrypt User Data before sending to BlockChain
 Realtime WebSockets Programming
 DONE - Make Registration Form with Name, Email and Password fields 
 DONE - Make Database connectivity
