@@ -3,7 +3,9 @@ testBCS.py
 testdel.py
 test.py
 config.py
+testWallet.py
 .vercel
 run.py
 BlockChainNode/chain.json
 BlockChainNode/wallets.json
+BlockChainNode/testSQLite3.py

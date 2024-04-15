@@ -1,18 +1,92 @@
 Youtube Video Reference : https://www.youtube.com/watch?v=uZnp21fu8TQ
 
+GENESIS BLOCK
+{
+    "Index": 0,
+    "Timestamp": "",
+    "BlockType": "GENESIS",
+    "Data": {
+        "TimeStamp": "",
+        "RoomName": "",
+        "UserID": "ID",
+        "Name": "SERVER",
+        "Message": "GenesisBlock"
+    },
+    "MintedBy": "",
+    "PreviousHash": "",
+    "Hash": ""
+}
+
+USER Block
+{
+    "Index": ,
+    "Timestamp": "",
+    "BlockType": "USER",
+    "Data":  {
+        "USERID": int,
+        "NAME": "",
+        "EMAIL": "",
+        "ADDRESS": "",
+        "HASHED_PASSWD": "",
+        "SALT": "",
+        "ROOMS": "['Lobby', 'Test']"
+    }
+    "MintedBy": "",
+    "PreviousHash": "",
+    "Hash": ""
+}
+
+POSTS BLOCK
+{
+    "Index": 3,
+    "Timestamp": "2024-03-28 18:24:08",
+    "BlockType": "POSTS",
+    "Data": {
+        "TimeStamp": "2024-03-28 18:24:08",
+        "RoomName": "Test",
+        "UserID": 10,
+        "Name": "LG148",
+        "Message": "Mix and match multiple content types to create the card you need, or throw everything in there. Shown below are image styles, blocks, text styles, and a list group—all wrapped in a fixed-width card."
+    },
+    "MintedBy": "Anand",
+    "PreviousHash": "14eaecfc2238862f54a6334131d0bc8280647f9b41c19ee71ecad9279e766d37",
+    "Hash": "1bf5c07869b34a2f8ca87e7a0780a81fb06a43a733b87a7e96a548155770918c"
+}
+
+TRANSACTION BLOCK
+{
+    "TransactionId":"1",
+    "Sender":"John Doe",
+    "Recipient":"Jane Smith",
+    "Amount":10.5,
+    "Signature":"signature",
+    "Transaction Timestamp":"2024-03-28 18:24:08",
+    "Hash":"abcdefg1234567890"
+}
+
+Make a node class
+Methods for the Node Class:
+- __init__(self, block) : Constructor to initialize a new node with given data
+- get_data(self): Returns the data stored in the node
+- set_data(self, data): Sets the data for the node
+- create_hash(self): Creates and sets the hash of the node's data
+- check_validity(self, previous_node): Checks if the node is valid based on its own properties and those of the preceding
+- check_validity(self, previous_hash): Checks if the current nodes hash is valid compared to the passed previous_hash
+- check_validity(self, previous_node): Checks if the current node is valid based on its own properties and those of the
+- check_validity(self, previous_hash): Checks if the current nodes hash matches the provided previous hash
+
+Migrate all the users from mysql database to json
+
+Make New post page better
+
 Make Post IDs = index on BlockChain
 Mame Room IDs
 Make Email/Name login
-Add Side bar for  navigation (Home, About Us, Contact Us) and Rooms listing (Bootstrap)
-Create a function to get all the posts from blockchain when page loads
 Display the recent post in Home Page
 Make it so that more posts load when user scrolls using WebSockets.
-When user clicks "Next" button it should display next post
 Check which all rooms a user is present in to see the respective posts
-Show Posts dynammically 
 Add Comments to each post 
 BlockChain connectivity thru sockets
-Add a minted by tag at the end of every block
 Sort comments based on time stamp
 Make a list of all nodes
 Make a list of all servers. Update when new connection is made everytime
@@ -21,10 +95,24 @@ Make an API
 Make Forms look good with Bootstrap
 Make a Block Validator 
 Implement Proof of Work Algorithm
+Implement Proof of History Algorithm
+Maybe in future use mongoDB
+User double qoutes around strings
+User environment variables in vercel
 Make a time server 
 Use IPFS instead of File System
 Change UI to be responsive
 Encrypt User Data before sending to BlockChain
 Realtime WebSockets Programming
-DONE - Make Registration Form with Name, Email and Password fields 
-DONE - Make Database connectivity
+
+DONE -
+Make Password Update page
+Make Email Update page
+Create a function to get all the posts from blockchain when page loads
+Show Posts dynammically 
+When user clicks "Next" button it should display next post
+
+Add a minted by tag at the end of every block
+Add Side bar for  navigation (Home, About Us, Contact Us) and Rooms listing (Bootstrap)
+Make Registration Form with Name, Email and Password fields 
+Make Database connectivity
