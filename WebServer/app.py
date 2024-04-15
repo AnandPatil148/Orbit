@@ -2,19 +2,17 @@
 from flask import Flask, redirect, url_for, jsonify, request, render_template, session, flash
 from flask_socketio import SocketIO
 from datetime import timedelta
-import datetime
-import secrets
-import socket
 import json
-import Orbit_API as API
-
-
-app = Flask(__name__)
-#socketIO = SocketIO(app)
+import Orbit_NodeAPI as API
 
 #BCN params
 BCN_ip = '180.ip.ply.gg'
 BCN_port = 12378
+
+API.set_params(BCN_ip, BCN_port)
+
+app = Flask(__name__)
+#socketIO = SocketIO(app)
 
 # Setup the secret key for sessions
 app.secret_key = "yomamagay"
@@ -42,10 +40,12 @@ def signup():
         
         if NAME == "" or EMAIL == "" or PASSWD == "":
             flash('Please fill out all fields!')
+            return redirect(url_for('signup'))
             
         # Checks if passwords match
         elif PASSWD != CPASSWD:
             flash('Passwords do not match!')
+            return redirect(url_for('signup'))
             
                 
         else:
@@ -113,29 +113,55 @@ def user():
     EMAIL = None
     
     if "USERID" in session:
-        USERID = session["USERID"]
         NAME = session["NAME"]
         
         if request.method == "POST":
-            EMAIL = request.form["EMAIL"]
-            session["EMAIL"] = EMAIL
             
-            email_info = json.dumps({
-                "USERID": USERID,
-                "EMAIL": EMAIL
-            })
-            
-            response = API.email_update(email_info) 
-            
-            if response[0]:
-                session["EMAIL"] = EMAIL
-                flash("Email Updated Successfully", "info")
+            if "EMAIL" in request.form:
+                EMAIL = request.form["EMAIL"]
                 
+                if EMAIL == session["EMAIL"]:
+                    flash("Please enter a new email address.") 
+                    return redirect(url_for("user"))
+                                    
+                email_info = json.dumps({
+                    "NAME": NAME,
+                    "EMAIL": EMAIL
+                })
+                
+                response = API.email_update(email_info) 
+                
+                if response[0]:
+                    session["EMAIL"] = EMAIL
+                    flash("Email Updated Successfully", "info")
+                    
+                else:
+                    flash("Failed to Update Email", "error")
+                    flash(response[1])
+                
+                return redirect(url_for("user"))
+            
             else:
-                flash("Failed to Update Email", "error")
-                flash(response[1])
                 
-            return redirect(url_for("profile"))
+                OLD_PASSWD = request.form["OLD_PASSWD"]
+                NEW_PASSWD =  request.form["NEW_PASSWD"]
+                
+                passwd_info = json.dumps({
+                    "NAME": NAME,
+                    "OLD_PASSWD": OLD_PASSWD,
+                    "NEW_PASSWD":NEW_PASSWD
+                })
+                
+                response = API.passwd_update(passwd_info)
+                
+                if not response[0]:
+                    flash(response[1])
+                    
+                else:
+                    flash("Password Changed Successfully", "info")
+        
+                return redirect(url_for("user"))
+        # If no changes were made just go back to the user page
             
         else:
             if "EMAIL" in session:
@@ -196,36 +222,12 @@ def newpost(roomname):
         #check if message if null or not 
         if message == "":
             flash("Message cannot be empty!","danger")
-            return redirect(url_for("room", roomname = roomname))
-            
+            return redirect(url_for("newpost", roomname = roomname))
         
-        #Time at which Message was recceived by server
-        t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # '2024-02-14 01:13:15'
         NAME = session["NAME"]
         UserID = session["USERID"]
         
-        #Collect data in the form of Dictionary
-        data = {
-            'TimeStamp': t,  #TimeStamp of the message
-            'RoomName': roomname,  # Room name from which the client chats from
-            'UserID': UserID,  # User ID for tracking user activity
-            'Name': NAME, # UserName for the user who is chatting
-            'Message': message, # Message to be sent by the user
-        }
-
-
-        dataString = json.dumps(data) #convert to json string
-
-        print(f"{NAME}: MINT "+dataString)
-        
-        BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain servers
-        BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)
-        
-        BCN.send(dataString.encode('utf-8')) #send json string to blockchain server
-        
-        #print(f"{t}:{roomname} - {NAME}: {message}")
-        
-        BCN.close()
+        API.mint_blocks(UserID,NAME, message, roomname)
         
         return redirect(url_for("room", roomname = roomname))
         
@@ -245,6 +247,7 @@ def logout():
     return redirect(url_for("login"))
 
 
+
 #socketIO.run(app=app, host='0.0.0.0', port=8080, debug=True)
 #app.run(host = '0.0.0.0', port = 8080, debug = True)
-
+#flask run --debug -h "0.0.0.0" -p 8080

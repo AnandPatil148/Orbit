@@ -14,16 +14,43 @@
 {% endif %}
 {% endwith %}
 
-<p> Welcome  {{NAME}} </p>
 
-<form action="#" method="post">
-    <p>Email: &nbsp;&nbsp;  <input type="email" name="EMAIL" placeholder="Enter Email" value="{{EMAIL if EMAIL}}" /> </p>
-    <p> <input type="submit"  value="Save"/> </p>
-    
-</form>
 
-<form action="/logout/" method="get">
-    <p> <input type="submit"  value="Logout" /> </p>
-</form>
+<div class="row">
+    <div class="col-md-8">
+        <p> Welcome  {{NAME}} </p>
+
+    <form action="#" method="post">
+        <div class="mb-3">
+            <label for="InputEmail" class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="InputEmail" name="EMAIL" placeholder="Enter Email" aria-describedby="emailHelp" value="{{EMAIL if EMAIL}}">
+            <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+        </div>
+        <button type="submit" class="btn btn-primary" value="submit">Update Email</button>
+    </form>
+    <br>
+    <form action="#" method="post">
+        <div class="mb-3">
+            <label for="InputPassword" class="form-label">Current Password</label>
+            <input type="password" class="form-control" id="InputPassword" name="OLD_PASSWD" placeholder="Enter Current Password Here" aria-describedby="passwordHelp">
+            <div id="passwordHelp" class="form-text">
+                Your password must be 8-20 characters long, contain letters and numbers, and must not contain spaces, special characters, or emoji.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="InputPassword" class="form-label">New Password</label>
+            <input type="password" class="form-control" id="InputPassword" name="NEW_PASSWD" placeholder="Enter New Password Here" aria-describedby="passwordHelp">
+            <div id="passwordHelp" class="form-text">
+                Your password must be 8-20 characters long, contain letters and numbers, and must not contain spaces, special characters, or emoji.
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary" value="submit">Update Password</button>
+    </form>
+    </div>
+</div>
+
+<br>
+
+<button type="button" class="btn btn-primary" onclick="window.location.href='/logout/'">Logout</button>
 
 {% endblock %}
