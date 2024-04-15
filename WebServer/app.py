@@ -6,8 +6,8 @@ import json
 import Orbit_NodeAPI as API
 
 #BCN params
-BCN_ip = '180.ip.ply.gg'
-BCN_port = 12378
+BCN_ip = '19.ip.gl.ply.gg'
+BCN_port = 28536
 
 API.set_params(BCN_ip, BCN_port)
 
