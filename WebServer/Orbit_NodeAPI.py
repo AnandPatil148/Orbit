@@ -2,9 +2,11 @@ import datetime
 import socket
 import json
 
-#BCN params
-BCN_ip = '180.ip.ply.gg'
-BCN_port = 12378
+def set_params(IP, port):
+    global BCN_ip
+    global BCN_port
+    BCN_ip = IP
+    BCN_port = port
 
 def BCN_connect():
     '''
@@ -30,7 +32,7 @@ def sign_up(user_info:dict):
         BCN_query = f"AUTH REGISTER !{user_info}" # Sending Login Info to the server for Authentication
         BCN.send(BCN_query.encode("utf-8")) # Sends the Query
 
-        dataString = BCN.recv(4096).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}"
+        dataString = BCN.recv(1024).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}"
                 
         BCNAuthResponse = dataString.split(" ")[1] # Receives and Stores the Response from the BCN Node
                 
@@ -51,7 +53,7 @@ def sign_up(user_info:dict):
 
 def login(login_info:dict):
     '''
-    Params : user_login = {"USERID":"UserID","PASSWORD":"Password"}
+    Params : login_info = {"USERID":"UserID","PASSWORD":"Password"}
     Returns : [bool,str] -> If Successful Returns [True,"Logged In"] else [False,"Error Message"]
     '''
     try:
@@ -60,7 +62,7 @@ def login(login_info:dict):
         BCN_query = f"AUTH LOGIN !{login_info}" # Sending Login Info to the server for Authentication
         BCN.send(BCN_query.encode('utf-8')) # Sends the Query
         
-        dataString = BCN.recv(4096).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}"
+        dataString = BCN.recv(1024).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}"
         
         BCNAuthResponse = dataString.split(" ")[1] # Receives and Stores the Response from the BCN Node
         
@@ -85,15 +87,15 @@ def login(login_info:dict):
 def email_update(email_info:dict):
     '''
     Updates User's Email in Database & sends a verification mail to new Email ID
-    Params : email_info = {"USERID": ID,"NEW_EMAIL":"NewEmail"}
+    Params : email_info = {"NAME": NAME,"NEW_EMAIL":"NewEmail"}
     Returns : [Bool,Str] -> If Successful Returns [True,"Updated"] else [False,"Error Message"]
     '''
     try:
         BCN = BCN_connect()  # TCP Conn to Blockchain Nodes
         
         BCN_query = f"AUTH EMAIL_UPDATE !{email_info}" # Sending New Email Info to the server for Updating
-        BCN.send(BCN_query.encode('utf-8')) # Sends the Quer
-        dataString = BCN.recv(4096).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}
+        BCN.send(BCN_query.encode('utf-8')) # Sends the Query
+        dataString = BCN.recv(1024).decode() #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}
         
         BCNAuthResponse = dataString.split(" ")[1] # Receives and Stores the Response from the BCN Node
         
@@ -108,7 +110,40 @@ def email_update(email_info:dict):
     
     except Exception as e:   # If connection fails it will return an error message
         return False, str(e)
+    
 
+def passwd_update(passwd_info:dict)->bool:
+    """
+    Updates user password on database
+    Params :  passwd_info = {
+                'NAME':'NAME',
+                'OLD_PASSWD': 'Old Password',
+                'NEW_PASSWD':'NewPassword'
+              }
+    Returns : [Bool,Str] -> If Successful Returns [True,"Updated"] else [False,"Error Message"]
+    """
+    try:
+        BCN = BCN_connect()
+        BCN_query = f"AUTH PASSWD_UPDATE !{passwd_info}" #  New Password is sent with '!' separator
+        BCN.send(BCN_query.encode('utf-8')) # Sends the Query
+        
+        dataString = BCN.recv(1024).decode('utf-8') #  Receives Data from the Server and Decodes it into a String "AUTH 'response' !{data}
+        
+        BCNAuthResponse = dataString.split(" ")[1] # Receives and Stores the Response from the BCN Node
+        
+        if BCNAuthResponse == "OK":
+            return True, "OK"
+
+        elif BCNAuthResponse == "ERROR":
+            errorInfo = json.loads(dataString.split("!")[1])
+            raise Exception (errorInfo["ERROR"])
+    
+    except Exception as e:
+        return False, str(e)
+    
+    finally:
+        BCN.close()
+        
 def get_blocks(nOfBlocks, roomname):
     '''
     Gets all blocks present till now on the blockchain
@@ -136,4 +171,28 @@ def get_blocks(nOfBlocks, roomname):
         BCN.close()
         return False, BlockData
     
-    
+
+def mint_blocks(USERID, NAME, MESSAGE, ROOMNAME):
+        #Time at which Message was recceived by server
+        t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # '2024-02-14 01:13:15'
+        #Collect data in the form of Dictionary
+        data = {
+            'TimeStamp': t,  #TimeStamp of the message
+            'RoomName': ROOMNAME,  # Room name from which the client chats from
+            'UserID': USERID,  # User ID for tracking user activity
+            'Name': NAME, # UserName for the user who is chatting
+            'Message': MESSAGE, # Message to be sent by the user
+        }
+
+
+        dataString = json.dumps(data) #convert to json string
+
+        print(f"{NAME}: MINT "+dataString)
+        
+        BCN = BCN_connect()   # Connecting with Server
+        
+        BCN.send(f"MINT {dataString}".encode('utf-8')) #send json string to blockchain server
+        
+        #print(f"{t}:{roomname} - {NAME}: {message}")
+        
+        BCN.close()
