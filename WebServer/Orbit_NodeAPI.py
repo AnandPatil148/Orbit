@@ -13,7 +13,11 @@ def BCN_connect():
     Connects to the BCN server and returns a connected socket object. If it fails, raises an exception.
     '''
     BCN = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # TCP Conn to Blockchain Nodes
-    BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969
+    BCN.connect((BCN_ip, BCN_port))    # Connecting with local BCN Node (localhost:6969)
+    
+    NorW = BCN.recv(1024).decode()
+    if NorW == "N or W":
+        BCN.send("W".encode('utf-8'))   # Sending 'N' for Webserver
     return BCN    
 
 def sign_up(user_info:dict):

@@ -1,12 +1,14 @@
 import datetime
 import hashlib
 import json
+import secrets
 
 class Block():
     
-    def __init__(self,index:int, timestamp:str, data:dict, mintedBy:str):
+    def __init__(self,index:int, timestamp:str, block_type:str, data:dict, mintedBy:str):
         self.index = index
         self.timestamp = timestamp
+        self.block_type = block_type
         self.data = data
         self.mintedBy = mintedBy
         self.previousHash = "0"
@@ -20,6 +22,7 @@ class Block():
         return {
             "Index": self.index,
             "Timestamp": self.timestamp,
+            "BlockType": self.block_type, 
             "Data": self.data,
             "MintedBy": self.mintedBy,
             "PreviousHash": self.previousHash,
@@ -28,7 +31,14 @@ class Block():
         
     @staticmethod
     def to_block(b_dict):
-        b = Block(b_dict["Index"], b_dict["Timestamp"], b_dict["Data"], b_dict["MintedBy"])
+        b = Block(
+            index=b_dict["Index"],
+            timestamp=b_dict["Timestamp"],
+            block_type=b_dict["BlockType"],
+            data=b_dict["Data"],
+            mintedBy=b_dict["MintedBy"]
+            )
+        
         b.previousHash = b_dict["PreviousHash"]
         b.hash = b.calculate_hash()
         return b
@@ -40,7 +50,10 @@ class Blockchain():
         """
         Initialize the blockchain with a genesis block.
         """
-        self.chain = [self.create_genesis_block()]
+        #self.chain = [self.create_genesis_block()]
+        self.chain = []
+        self.users_count = 0
+        self.posts_count = 0
 
         self.wallets = {}  # Dictionary to store wallet addresses and blockchain identities
     
@@ -50,71 +63,121 @@ class Blockchain():
     
     def create_genesis_block(self):
         """
-        Create and return the genesis block of the blockchain.
+        Create and add the genesis block of the blockchain to json file.
         """
-        
-        genesisBlock = Block(0, datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), data = {
-        'TimeStamp': datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'),  #TimeStamp of the message
-        'RoomName': 'Lobby',  # Room name from which the client chats from
-        'UserID': 'SERVER',  # User ID for tracking user activity
-        'Name': 'SERVER', # UserName for the user who is chatting
-        'Message': 'GenesisBlock' , # Message to be sent by the user
-        }, mintedBy="SELF")
         
         with open('chain.json', 'r+', encoding='utf-8') as f:
             
             file_data = json.load(f) # Load JSON data from file to variable `file_data`
             
-            try: 
-                file_data["Blocks"][0]["Index"] = genesisBlock.index
-                
-                return genesisBlock
-            except:
-                
-                file_data["Blocks"].append(genesisBlock.to_dict())
-                f.seek(0)
-                json.dump(file_data, f, ensure_ascii=False, indent=4)
-
+            #If no data in file, create new Genesis Block
+            genesisBlock = Block(
+                index=0, 
+                timestamp=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
+                block_type="GENESIS", 
+                data = {
+                    'TimeStamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),  #TimeStamp of the message
+                    'RoomName': 'Lobby',  # Room name from which the client chats from
+                    'UserID': 'SERVER',  # User ID for tracking user activity
+                    'Name': 'SERVER', # UserName for the user who is chatting
+                    'Message': 'GenesisBlock' , # Message to be sent by the user
+                    },
+                mintedBy="SERVER"
+                )
+            
+            file_data["Blocks"].append(genesisBlock.to_dict()) # Add genesis block to list in JSON file
+            f.seek(0)
+            json.dump(file_data, f, ensure_ascii=False, indent=4) # Save new data back into the JSON file
+        
         return genesisBlock
     
     def create_room_genesis_block(self, roomname, mintedBy):
-        roomStartBlock = Block(self.get_chain_length(), datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'), data = {
-        'TimeStamp': datetime.datetime.now().strftime('%m-%d-%y %H:%M:%S'),  #TimeStamp of the message
-        'RoomName': f'{roomname}',  # Room name from which the client chats from
-        'UserID': 'SERVER',  # User ID for tracking user activity
-        'Name': 'SERVER', # UserName for the user who is chatting
-        'Message': 'GenesisBlock' , # Message to be sent by the user
-        }, mintedBy=mintedBy)
+        roomStartBlock = Block(
+            index=self.get_chain_length(), 
+            timestamp=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
+            block_type="ROOM_GENESIS", 
+            data = {
+                'TimeStamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),  #TimeStamp of the message
+                'RoomName': f'{roomname}',  # Room name from which the client chats from
+                'UserID': 'SERVER',  # User ID for tracking user activity
+                'Name': 'SERVER', # UserName for the user who is chatting
+                'Message': 'GenesisBlock' , # Message to be sent by the user
+                },
+            mintedBy=mintedBy
+            )
         
-        self.add_block(roomStartBlock, roomBlockOrNot=True)
+        self.add_block(roomStartBlock, isRoomBlock=True)
         
         #To check whether to add room genesis block to database or not
         with open('chain.json', 'r+', encoding='utf-8') as f:
             
             file_data = json.load(f)
+            
             #Check if room genesis block is present or not
             for i in range(self.get_chain_length()):
-                if roomname in file_data["Blocks"][i]["Data"]["RoomName"]:
+                try:
+                    file_data["Blocks"][i]["Data"]["RoomName"]
                     t = (i, True)
+                except:
+                    t = (i, False)
+                    pass
             
             if t[1]:
                 print(f"This room, {roomname}, already has a Genesis Block.")
                 return False
             else:
-                    print("No Room Found")
-            
-                    file_data["Blocks"].append(roomStartBlock.to_dict())
-                    f.seek(0)
-                    json.dump(file_data, f, ensure_ascii=False, indent=4)
-                    return None
+                print("No Room Found")
 
+                file_data["Blocks"].append(roomStartBlock.to_dict())
+                f.seek(0)
+                json.dump(file_data, f, ensure_ascii=False, indent=4)
+                return True
+
+    def load_chain(self,filename):
+        try:
+            f = open(filename, "rb")
+            data = json.load(f)
+            chain = []
+            
+            if data["Blocks"] == []:
+                self.create_genesis_block()
+                f = open(filename, "rb")
+                data = json.load(f)
+            
+            for b_dict in data["Blocks"]:
+                
+                b = Block.to_block(b_dict)
+                
+                if b.block_type=="USER":
+                    self.users_count = b.data["USERID"]
+                else :
+                    self.posts_count+=1
+                    
+                chain.append(b)
+            
+            self.chain = chain
+                
+        except FileNotFoundError:
+            print("No existing blockchain found.")
+                    
+    def load_wallets(self, filename):
+        """
+        # Under Dev
+        """
+        try:
+            with open(filename, 'r') as file:
+                self.wallets = json.load(file)
+        except FileNotFoundError:
+            # File not found, initialize with an empty dictionary
+            self.wallets = {}
+    
     def get_latest_block(self):
         """
         Return the latest block in the blockchain.
         """
         return self.chain[len(self.chain) - 1]
 
-    def add_block(self, newBlock: Block, roomBlockOrNot: bool):
+    def add_block(self, newBlock: Block, isRoomBlock: bool=False):
         """
         Add a new block to the blockchain with the previous hash set to the
         hash of the latest block.
@@ -124,7 +187,7 @@ class Blockchain():
         self.chain.append(newBlock)
         
         #If not a room genesis block add to global chain data base
-        if not roomBlockOrNot:
+        if not isRoomBlock:
             with open('chain.json', 'r+', encoding='utf-8') as f:
 
                 file_data = json.load(f)
@@ -133,6 +196,141 @@ class Blockchain():
                 f.seek(0)
                 json.dump(file_data, f, ensure_ascii=False, indent=4)
 
+    #Hashes Password
+    def hash_password(self,passwordToHash:str, salt:bytes=None):
+        if salt is None:
+            salt = secrets.token_bytes(16)  # Generate a random 16-byte salt
+
+        # Combine the password and salt, then hash
+        hashed_password = hashlib.sha256(passwordToHash.encode() + salt).hexdigest()
+
+        return hashed_password, salt
+
+    # Verifies password
+    def check_password(self,passwordToCheck, storedHashOfPassword, storedSalt):
+        # Use the same process to hash the given password,
+        # and compare it with the stored password
+        generated_new_hash = self.hash_password(passwordToCheck, storedSalt)[0]
+        return generated_new_hash == storedHashOfPassword
+    
+    def calculate_user_address(self, NAME, EMAIL, SALT):
+        # Concatenate user attributes
+        user_info = f"{NAME}{EMAIL}{SALT}"
+
+        # Hash the concatenated string using SHA-256
+        hashed_address = hashlib.sha256(user_info.encode()).hexdigest()
+
+        return hashed_address
+
+    def register_user(self, NAME:str, EMAIL:str, PASSWD:str,):
+        
+        for block in self.chain:
+            if block.block_type == "USERS" and block.data["NAME"] == NAME:
+                return False
+        
+        HASHED_PASSWD, SALT =  self.hash_password(PASSWD)
+        self.users_count += 1
+        
+        # Create user authentication data
+        user_data = {
+            "USERID": self.users_count,
+            "NAME": NAME,
+            "EMAIL": EMAIL,
+            "ADDRESS": self.calculate_user_address(NAME,EMAIL,SALT),
+            "BALANCE": 0,
+            "HASHED_PASSWD": HASHED_PASSWD,
+            "SALT": SALT.hex(),
+            "ROOMS": '["Lobby"]'
+        }
+        
+        # Create a new block with user authentication data
+        new_block = Block(
+            index=self.get_chain_length(),
+            timestamp=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            block_type="USER",
+            data=user_data,
+            mintedBy="SERVER"
+        )
+        
+        # Add the new block to the blockchain
+        self.add_block(new_block)
+        
+        return True
+    
+    def authenticate_user(self, NAME: str, PASSWD: str):
+        """
+        Find the latest block containing user authentication data
+        """
+        for block in reversed(self.chain):
+            
+            if block.block_type == "USER" and block.data["NAME"] == NAME:
+                
+                stored_PASSWD = block.data["HASHED_PASSWD"]
+                stored_SALT = block.data["SALT"]
+                
+                # Decrypt password from hexadecimal format to bytes
+                SALT_bytes = bytes.fromhex(stored_SALT)
+                
+                if self.check_password(PASSWD, stored_PASSWD, SALT_bytes):
+                    response_data = {
+                            "USERID": block.data["USERID"],
+                            "NAME": block.data["NAME"],
+                            "EMAIL": block.data["EMAIL"],
+                            "ROOMS": json.loads(block.data["ROOMS"]),
+                            }
+                    return True, response_data
+                
+                else:
+                    return False, "INCORRECT PASSWORD"
+            
+        return False, "Account Not Found. Please Signup."
+
+    def update_user_data(self, NAME, new_password=None, new_email=None):
+        """
+        # Under Dev
+        Update fields of interest (Password or Email). 
+        If no changes are made just return the current data.
+        """
+        for block in reversed(self.chain):
+            if block.block_type == "USER" and block.data["NAME"] == NAME:
+                
+                # Create a new block with the updated user information
+                updated_data = block.data.copy()  # Create a copy of the existing data
+                
+                # Update user data if new password, email, or address is provided
+                if new_password:
+                    HASHED_PASSWD, SALT = self.hash_password(new_password, bytes.fromhex(updated_data["SALT"]))
+                    updated_data["HASHED_PASSWD"] = HASHED_PASSWD
+                
+                if new_email:
+                    updated_data["EMAIL"] = new_email
+                    updated_data["ADDRESS"] = self.calculate_user_address(updated_data["NAME"], new_email, updated_data["SALT"])
+                
+                # Create a new block with the updated user data
+                new_block = Block(
+                    index=self.get_chain_length(),
+                    timestamp=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    block_type="USER",
+                    data=updated_data,
+                    mintedBy="SERVER"
+                )
+                
+                # Add the new block to the blockchain
+                self.add_block(new_block)
+                
+                return True  # User data updated successfully
+    
+        return False  # User not found or data not updated
+    
+    #Future Idea
+    '''
+    def add_room_to_profile(self, email: str, room: str) -> None:
+        """Add a room to a user's profile."""
+        user_index = self._find_email_in_chain(email)
+        if user_index is not None:
+            user_block = self.get_block(user_index)
+    '''
+       
     def to_dict(self):
         """
         Convert the blockchain into a list of dictionaries for each block.
@@ -168,35 +366,16 @@ class Blockchain():
     def get_block(self, nOfBlock, roomname) -> list:
         blocksList = []
         
-        for i in range(self.get_chain_length()):
-            if len(blocksList) == nOfBlock:
+        for  block in reversed(self.chain):
+            if len(blocksList) == nOfBlock: # If we have reached the desired number of blocks, stop iterating through the chain
                 break
-            block = self.chain[-1-i]
-            if block.data["RoomName"] == roomname:
-                blocksList.append(block.to_dict())
+            
+            elif block.block_type == "GENESIS" or block.block_type == "POST":
+                if block.data["RoomName"] == roomname:
+                    blocksList.append(block.to_dict())
+                pass
+        
         return blocksList
-    
-    def load_chain(self,filename):
-        try:
-            with open(filename, "rb") as f:
-                data = json.load(f)
-                chain = []
-                
-                for b_dict in data["Blocks"]:
-                    b = Block.to_block(b_dict)
-                    chain.append(b)
-                self.chain = chain
-        except FileNotFoundError:
-            print("No existing blockchain found.")
-                    
-    def load_wallets(self, filename):
-        try:
-            with open(filename, 'r') as file:
-                self.wallets = json.load(file)
-        except FileNotFoundError:
-            # File not found, initialize with an empty dictionary
-            self.wallets = {}
-
     
     def save_data(self, filename):
         with open(filename, 'w') as file:
@@ -210,8 +389,7 @@ class Blockchain():
     def get_blockchain_identity(self, wallet_address):
         # Retrieve the blockchain identity associated with a wallet address
         return self.wallets.get(wallet_address)
-        
- 
+
  
 """
 GCoin = Blockchain()

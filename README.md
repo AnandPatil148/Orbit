@@ -1,4 +1,4 @@
-# ChaPi
+# Orbit
 
 This is a simple server-client based chat application writen in python.\
 Start Server.py and specify local IPv4 address.\

@@ -1,7 +1,6 @@
 from BlockChain import *
-import mysql.connector 
+from Node import Node
 import json
-import secrets
 import socket
 import threading
 import datetime
@@ -17,30 +16,20 @@ ADDR = (SERVER, PORT)
 #Can be changed later
 Node_User = 'Anand'
 
-# Set up the database connection
-host = 'localhost' 
-port = 3306
-username = 'server'
-password = 'server'
-loginDatabase = 'login'
-roomDatabase = 'roomdata'
+# Generate a globally unique address for this node
+node_identifier = str(uuid4()).replace('-', '')
 
-#Connect to mysql server 
-conn = mysql.connector.connect(host=host, port=port, user=username, passwd=password)
-
-cursor = conn.cursor(buffered=True)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 server.listen()
 print(f"[LISTENING] BlockChain Server is listening on {SERVER}:{PORT}...")
 
-SERVERS = []
+WebServers = []
 NODES = []
 
 Orbit = Blockchain()
-Orbit.create_room_genesis_block("Test", Node_User)
-Orbit.load_wallets("wallets.json")
+#Orbit.create_room_genesis_block("Test", Node_User) commented for testing purposes
 Orbit.load_chain("chain.json")
 
 
@@ -51,36 +40,23 @@ def commands():
         cmd = input('')
         if cmd == '!VC':
             print( json.dumps(Orbit.to_dict(), indent= 4) )
+        elif cmd ==  "!USERS":
+            print(Orbit.users_count)
         elif cmd == '!stop':
-            for server in SERVERS:
+            for server in WebServers:
                 server.close()
             SystemExit(0)
-
-#Hashes Password
-def hash_password(passwordToHash:str, salt=None):
-    if salt is None:
-        salt = secrets.token_bytes(16)  # Generate a random 16-byte salt
-    
-    # Combine the password and salt, then hash
-    hashed_password = hashlib.sha256(passwordToHash.encode() + salt).hexdigest()
-    
-    return hashed_password, salt
-
-# Verifies password
-def check_password(passwordToCheck, storedHashOfPassword, storedSalt):
-    # Use the same process to hash the given password,
-    # and compare it with the stored password
-    generated_new_hash = hash_password(passwordToCheck, storedSalt)[0]
-    return generated_new_hash == storedHashOfPassword
 
 
 # Function to handle SERVERS' connection
 def HandleServer(SERVER: socket.socket, addr):
     while True:
+        
         t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
         try:
             dataString = SERVER.recv(1024).decode('utf-8')
-            print(f"{t}: {addr} -> {dataString}")
+            #print(f"{t}: {addr} -> {dataString}")
             
             # Sends message back to client
             
@@ -106,97 +82,102 @@ def HandleServer(SERVER: socket.socket, addr):
             elif dataString.startswith("AUTH"):
                 sub_command = dataString.split(" ")[1]
                 
-                if sub_command == "LOGIN":
-                    
-                    # User tries to login with username and password
-                    auth_data = json.loads(dataString.split("!")[1]) #Getting the user credentials from message
-                    NAME = auth_data["NAME"]
-                    PASSWD = auth_data["PASSWD"]
-                    
-                    try:
-            
-                        query = f"SELECT * FROM login.info WHERE NAME='{NAME}';"  
-                        cursor.execute(query)
-
-                        data = cursor.fetchone()
-
-                        if not data:
-                            raise Exception ("Account Not Found. Please Signup")
-
-                        if not check_password(PASSWD, data[3], data[4]):
-                            raise Exception ("Incorrect username or password.")
-                        
-                        response_data = json.dumps({
-                            "USERID": data[0],
-                            "NAME": data[1],
-                            "EMAIL": data[2],
-                            "ROOMS": json.loads(data[5]),
-                            })
-                        
-                        SERVER.send(f"AUTH OK !{response_data}".encode())
-                        
-                    except Exception as e:
-                        print(f"{t}: AUTH Failed - {e}") 
-                        eD = json.dumps({
-                            "ERROR": str(e),
-                            }) 
-                        SERVER.send(f"AUTH ERROR !{eD}".encode())
-                        continue
-                    
-                elif sub_command == "REGISTER":
+                if sub_command == "REGISTER":
                     
                     auth_data = json.loads(dataString.split("!")[1]) #Getting the user credentials from message
                     
                     NAME = auth_data["NAME"]
                     EMAIL = auth_data["EMAIL"]
                     PASSWD = auth_data["PASSWD"]
-                    hashed_PASSWD, saltOf_PASSWD = hash_password(PASSWD)
                     
-                    # Create new User
-                    try:
-                        # Check if Username already exists
-                        query = "INSERT INTO login.info (NAME,EMAIL,PASSWD,SALT)  VALUES(%s,%s,%s,%s)"
-                        data = (NAME, EMAIL, hashed_PASSWD, saltOf_PASSWD)
-                        cursor.execute(query,data)
-                        conn.commit()
-                        
+                    reg_usr = Orbit.register_user(NAME=NAME, EMAIL=EMAIL, PASSWD=PASSWD)
+                    
+                    if reg_usr:
                         response_data = json.dumps({
                             "ERROR": None
                         })
                         
                         SERVER.send(f"AUTH OK !{response_data}".encode())
-                        
-                    except mysql.connector.Error as err:
-                        #
-                        print(f"{t}: Failed to insert into MySQL table {err}")
-                        
-                        response_data = {"ERROR":"User with this username or email already exists."}
-                        SERVER.send(f"AUTH ERROR !{json.dumps(response_data)}".encode())
+                    
+                
+                    else:   # User already exists in the database
+                        response_data = json.dumps({"ERROR":"User with this username or email already exists."})
+                        SERVER.send(f"AUTH ERROR !{response_data}".encode())
                         
                         continue
                 
+                elif sub_command == "LOGIN":
+                    
+                    # User tries to login with username and password
+                    auth_data = json.loads(dataString.split("!")[1]) #Getting the user credentials from message
+                    NAME = auth_data["NAME"]
+                    PASSWD = auth_data["PASSWD"]
+                    
+                    login_usr = Orbit.authenticate_user(NAME, PASSWD)
+                    
+                    if login_usr[0]:
+                        response_data = json.dumps(login_usr[1])  # Return user info
+                        SERVER.send(f"AUTH OK !{response_data}".encode())
+                    
+                    else:
+                        if login_usr[1] == "INCORRECT PASSWORD":
+                            response_data = json.dumps({
+                            "ERROR": "Incorrect username or password.",
+                            }) 
+                            SERVER.send(f"AUTH ERROR !{response_data}".encode())
+                        
+                        else:
+                            response_data = json.dumps({
+                            "ERROR": "Account Not Found. Please Signup.",
+                            }) 
+                            SERVER.send(f"AUTH ERROR !{response_data}".encode())
+                
+                #need to be worked on
                 elif sub_command == "EMAIL_UPDATE":
                     
                     # User tries to login with username and password
                     auth_data = json.loads(dataString.split("!")[1]) #Getting the new EMAIL credential from message
                     EMAIL = auth_data["EMAIL"]
-                    USERID = auth_data["USERID"]
+                    NAME = auth_data["NAME"]
                     
-                    try:
-                        
-                        query = "UPDATE login.info SET EMAIL=%s WHERE ID=%s"
-                        params = (EMAIL, USERID)
-                        cursor.execute(query,params)
-                        conn.commit()
+                    if Orbit.update_user_data(NAME, new_email=EMAIL):
                         
                         response_data = json.dumps({
                             "ERROR": None
                         })
                         SERVER.send(f"AUTH OK !{response_data}".encode())
                         
-                    except Exception as e:
+                    else:
                         response_data = json.dumps({
-                            "ERROR": str(e)
+                            "ERROR": "Failed to update email."
+                        })
+                        SERVER.send(f"AUTH ERROR !{response_data}".encode())
+                
+                elif sub_command == "PASSWD_UPDATE":
+                    # Update the users password in the database
+                    
+                    auth_data = json.loads(dataString.split("!")[1]) #Getting the new Passwrod credentials from message
+                    NAME = auth_data["NAME"]
+                    OLD_PASSWD = auth_data["OLD_PASSWD"]
+                    NEW_PASSWD = auth_data["NEW_PASSWD"]
+                    
+                    if not Orbit.authenticate_user(NAME, OLD_PASSWD):
+                        response_data = json.dumps({
+                            "ERROR":"Incorrect Old Password."
+                        })
+                        SERVER.send(f"AUTH ERROR !{response_data}".encode())
+                        continue
+                    
+                    if Orbit.update_user_data(NAME, new_password=NEW_PASSWD):
+                        
+                        response_data = json.dumps({
+                            "ERROR": None
+                        })
+                        SERVER.send(f"AUTH OK !{response_data}".encode())
+                        
+                    else:
+                        response_data = json.dumps({
+                            "ERROR": "Failed to update password."
                         })
                         SERVER.send(f"AUTH ERROR !{response_data}".encode())
                 
@@ -206,12 +187,19 @@ def HandleServer(SERVER: socket.socket, addr):
                     }
                     SERVER.send(f"AUTH ERROR !{json.dumps(response_data)}".encode())
             
-            else:
+            elif dataString.startswith("MINT"):
                 #print(dataString)
-                data = json.loads(dataString) #data is a disctionary here
+                data = json.loads(dataString[5:]) #data is a disctionary here
 
-                block = Block(len(Orbit.chain), data.get("TimeStamp"), data, Node_User)
-                Orbit.add_block(block, roomBlockOrNot=False)
+                block = Block(
+                    index=len(Orbit.chain), 
+                    timestamp=data.get("TimeStamp"), 
+                    data=data,
+                    block_type="POST", 
+                    mintedBy=Node_User
+                    )
+                Orbit.add_block(block, isRoomBlock=False)
+                
             '''
             # Mintes a block on the Blockchain
             elif dataString.startswith("MINT"):
@@ -224,7 +212,7 @@ def HandleServer(SERVER: socket.socket, addr):
             
         except Exception as msg:
             print (f'{t}: {SERVER.getpeername()} has disconnected with msg {msg}')      
-            SERVERS.remove(SERVER)
+            WebServers.remove(SERVER)
             SERVER.close()
             break
     return
@@ -233,18 +221,35 @@ def HandleServer(SERVER: socket.socket, addr):
 def receive():
     while True:
         
-        SERVER, address = server.accept()
+        connSocket, address = server.accept()
         t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f'{t}: Connection is established with {str(address)}')
         try:
             
-            SERVERS.append(SERVER)
+            connSocket.send("N or W".encode(encodeFormat)) # Sends N for Node and W for Webserver
+            NorW = connSocket.recv(4096).decode(encodeFormat) # Waits for an ACK from the client
             
-            thread = threading.Thread(target=HandleServer, args=(SERVER, address), daemon=True)
-            thread.start()
+            if NorW == "N":
+                NODES.append(connSocket)
+                print(f'{t}: Server at {str(address)} is now connected as a node')
+                Node_thread = threading.Thread(target=Node, args=(True, connSocket, address))
+            elif NorW == "W":
+                WebServers.append(connSocket)
+                print(f'{t}: Server at {str(address)} is now connected as a web-client')
+            
+                WebServers.append(connSocket)
+                WebServer_thread = threading.Thread(target=HandleServer, args=(connSocket, address), daemon=True)
+                WebServer_thread.start()
+
+            else:
+                print("ERROR: Invalid connection type")
+                connSocket.close()
+                pass            
             
         except socket.error:
             print(f"{t}: {str(address)} DISCONNECTED WITH {address} WITH ERROR : {socket.error}")
+            connSocket.close()
+            pass
 
 
 
@@ -252,7 +257,7 @@ def startservers():
     cmd_thread = threading.Thread(target=commands)
     cmd_thread.start()
     
-    receive_thread = threading.Thread(target=receive)
+    receive_thread = threading.Thread(target=receive, daemon=True)
     receive_thread.start()
     
 startservers()
