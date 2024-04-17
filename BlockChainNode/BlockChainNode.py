@@ -9,7 +9,7 @@ from uuid import uuid4
 # Server Related Variables
 encodeFormat = 'utf-8'
 SERVER = ('127.0.0.1')
-PORT = 6969
+PORT = 6968
 
 ADDR = (SERVER, PORT)
 
@@ -77,7 +77,6 @@ def HandleServer(SERVER: socket.socket, addr):
                 dataString = json.dumps(data) #convert to JSON Formated string
                 SERVER.send(dataString.encode(encodeFormat)) #sends the data to the SERVER
                 print(f"{t}: Data Sent To SERVER {addr}")
-                continue
             
             elif dataString.startswith("AUTH"):
                 sub_command = dataString.split(" ")[1]
@@ -246,8 +245,8 @@ def receive():
                 connSocket.close()
                 pass            
             
-        except socket.error:
-            print(f"{t}: {str(address)} DISCONNECTED WITH {address} WITH ERROR : {socket.error}")
+        except Exception as e:
+            print(f"{t}: {str(address)} DISCONNECTED WITH {address} WITH ERROR : {e}")
             connSocket.close()
             pass
 
