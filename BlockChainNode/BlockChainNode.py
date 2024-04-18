@@ -9,7 +9,7 @@ from uuid import uuid4
 # Server Related Variables
 encodeFormat = 'utf-8'
 SERVER = ('127.0.0.1')
-PORT = 6968
+PORT = 6969
 
 ADDR = (SERVER, PORT)
 
@@ -23,7 +23,7 @@ node_identifier = str(uuid4()).replace('-', '')
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 server.listen()
-print(f"[LISTENING] BlockChain Server is listening on {SERVER}:{PORT}...")
+print(f"[LISTENING] BlockChain Server is listening on {SERVER}:{PORT} ...")
 
 WebServers = []
 NODES = []
