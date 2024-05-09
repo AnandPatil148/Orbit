@@ -331,7 +331,7 @@ class Blockchain():
             user_block = self.get_block(user_index)
     '''
        
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
         Convert the blockchain into a list of dictionaries for each block.
         """
@@ -390,6 +390,15 @@ class Blockchain():
         # Retrieve the blockchain identity associated with a wallet address
         return self.wallets.get(wallet_address)
 
+    def set_chain(self, chain:dict):
+        """
+        Sets the chain attribute of Blockchain class with the given dictionary.
+        This method should be used only when loading an existing blockchain from disk.
+        :param chain: A dictionary containing all the information about the blockchain.
+        """
+        bc = Blockchain()
+        bc.chain = [Block.to_block(b) for b in chain]
+        self.chain = bc.chain
  
 """
 GCoin = Blockchain()
