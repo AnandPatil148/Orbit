@@ -30,7 +30,7 @@ def index():
         return render_template("index.html"  , ROOMS = session["ROOMS"])
     
     else:
-        return redirect(url_for("login"))
+        return render_template("home.html"  ,)
     
 @app.route("/signup/", methods = ["POST", "GET"])
 def signup():
