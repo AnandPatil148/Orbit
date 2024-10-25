@@ -162,6 +162,8 @@
       }
   }
 
+  setInterval(fetchLatestBlock, pollingInterval);
+
   // Start the polling interval
   function startPolling() {
       pollIntervalId = setInterval(fetchLatestBlock, pollingInterval);
