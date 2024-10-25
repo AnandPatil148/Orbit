@@ -160,20 +160,14 @@ def get_blocks(nOfBlocks, roomname):
     dataString = BCN.recv(4096).decode('utf-8') # Receive Data from BCN and decode it into utf-8 format
     
     Blocks = json.loads(dataString)       # Loads into List of Dictionaries
-    BlockData = [] 
     
     if Blocks != []:
-        for  i in range(len(Blocks)):
-            BlockData.append(Blocks[i]["Data"]) # Add Data Fields to new list
-            #BlockData = Blocks[0]["Data"]
-        
         BCN.close()
-        return True, BlockData
+        return True, Blocks
         
     else:
-        BlockData = []
         BCN.close()
-        return False, BlockData
+        return False, []
     
 
 def mint_blocks(USERID, NAME, MESSAGE, ROOMNAME):
