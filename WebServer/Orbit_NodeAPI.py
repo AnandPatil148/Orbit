@@ -188,8 +188,6 @@ def mint_blocks(USERID, NAME, MESSAGE, ROOMNAME):
 
         dataString = json.dumps(data) #convert to json string
 
-        print(f"{NAME}: MINT "+dataString)
-        
         BCN = BCN_connect()   # Connecting with Server
         
         BCN.send(f"MINT {dataString}".encode('utf-8')) #send json string to blockchain server
