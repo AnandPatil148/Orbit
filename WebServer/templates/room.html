@@ -16,7 +16,27 @@
 
 <h1 id="h1">WELCOME TO {{roomname}} ROOM</h1>
 
-<a class="btn btn-primary" href="/room/{{roomname}}/newpost/">New Post</a>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-8">
+      
+      <form id="MsgForm">
+        <div class="mb-3">
+          <label for="InputPost" class="form-label">Post Message</label>
+          <input type="text" class="form-control form-control-lg" id="InputPost" name="POSTMSG" placeholder="Enter a Message To Post" aria-describedby="postHelp">
+          <div id="postHelp" class="form-text">Type your message here.</div>
+        </div>
+        <button type="submit" class="btn btn-primary" value="submit">Submit</button>
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+<br>
+
+<!-- <a class="btn btn-primary" href="/room/{{roomname}}/newpost/">New Post</a> -->
 <br>
 <br>
 
@@ -49,7 +69,6 @@
     for(var i = 0; i <  data.length; i++)
     {
       displayPosts(data[i]);//Displays card
-      //displayPosts(data[0]);//Display first post by default
     }
 
     document.getElementById("posts-display").appendChild(document.createElement('br'));//Add break after header
@@ -70,7 +89,5 @@
     
   </div>
 </div>
-
-
 
 {% endblock %}
