@@ -129,7 +129,7 @@
 });
 
   let TimeStamp = "";  // Track the last displayed block
-  let pollingInterval = 500; // Default: 0.5 seconds
+  let pollingInterval = 1000; // Default: 0.5 seconds
 
   let isUserActive = true;  // Track whether the user is active
   let idleTimeout;  // Stores the timer for detecting idle state
@@ -162,7 +162,7 @@
       }
   }
 
-  setInterval(fetchLatestBlock, pollingInterval);
+  //setInterval(fetchLatestBlock, pollingInterval);
 
   // Start the polling interval
   function startPolling() {
@@ -176,9 +176,9 @@
   // Adjust the polling interval based on user activity
   function adjustPollingInterval() {
       if (isUserActive) {
-          pollingInterval = 500;  // .5 second
+          pollingInterval = 1000;  // .5 second
         } else {
-          pollingInterval = 50000;  // 50 seconds
+          pollingInterval = 30000;  // 30 seconds
         }
         stopPolling();
         startPolling();
