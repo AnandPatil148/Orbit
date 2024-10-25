@@ -10,7 +10,7 @@ from uuid import uuid4
 # Server Related Variables
 encodeFormat = 'utf-8'
 SERVER = ('127.0.0.1')
-PORT = 6968
+PORT = 6969
 
 ADDR = (SERVER, PORT)
 
@@ -18,7 +18,7 @@ ADDR = (SERVER, PORT)
 Node_User = 'Anand'
 
 # Generate a globally unique address for this node
-node_identifier = str(uuid4()).replace('-', '')
+node_identifier = uuid4().hex
 
 # List of all available nodes in the network. Later read and update from json file
 NodesAddrList = [ ('127.0.0.1', 6969),
@@ -48,6 +48,9 @@ def commands():
         elif cmd == "!NC":
             NodesConnect()
             
+        elif cmd == "!NID":
+            print( f"Your ID : {node_identifier}")
+            
         elif cmd ==  "!USERS":
             print(Orbit.users_count)
             
@@ -59,6 +62,9 @@ def commands():
 
 # Main function to receive the SERVER connections
 def receive():
+    
+    print("Starting receiveing thread")
+    
     while True:
         
         connSocket, address = server.accept()
@@ -67,14 +73,18 @@ def receive():
         try:
             
             connSocket.send("N or W".encode(encodeFormat)) # Sends N for Node and W for Webserver
-            NorW = connSocket.recv(4096).decode(encodeFormat) # Waits for an ACK from the client
+            NorW = connSocket.recv(1024).decode(encodeFormat) # Waits for an ACK from the client
             
             if NorW == "N":
                 
-                NODES.append(connSocket)
-                node_thread = threading.Thread(target=node_handler, args=(connSocket, address, True, Orbit, encodeFormat, NODES),  daemon=True)
-                node_thread.start
+                connSocket.send("NID?".encode(encodeFormat)) # Asks for node identifier
+                node_id = connSocket.recv(1024).decode()
+                
+                node_agrs = (connSocket, address, False, Orbit, encodeFormat, NODES)
+                node_thread = threading.Thread(target=node_handler, args=node_agrs,  daemon=True, name=node_id)
+                node_thread.start()
 
+                NODES.append(connSocket)
                 print(f'{t}: Server at {str(address)} is now connected as a node')
                 
             elif NorW == "W":
@@ -105,7 +115,14 @@ def NodesConnect():
         if NorW == "N or W":
             node_socket.send("N".encode(encodeFormat))   # Tells the node that we are also a node
             
-            node_thread = threading.Thread(target=node_handler, args=(node_socket, nodeAddr, True, Orbit, encodeFormat, NODES),  daemon=True)
+            node_socket.recv(1024).decode() # receives the NID? Msg
+            node_socket.send(node_identifier.encode()) # sends NID
+            
+            node_socket.send("NID?".encode(encodeFormat)) # Asks for NID
+            RNID = node_socket.recv(1024).decode()
+            
+            node_args = (node_socket, nodeAddr, True, Orbit, encodeFormat, NODES)
+            node_thread = threading.Thread(target=node_handler, args=node_args, daemon=True, name=RNID)
             node_thread.start()
             
             NODES.append(node_socket)                     # Adds it to our list of nodes
