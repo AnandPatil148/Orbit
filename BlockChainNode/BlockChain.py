@@ -363,7 +363,7 @@ class Blockchain():
         
         return True
     
-    def get_block(self, nOfBlock, roomname) -> list:
+    def get_blocks(self, nOfBlock, roomname) -> list:
         blocksList = []
         
         for  block in reversed(self.chain):
