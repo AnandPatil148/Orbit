@@ -1,6 +1,7 @@
 import datetime
 import socket
 import json
+import time
 
 def set_params(IP, port):
     global BCN_ip
@@ -18,6 +19,8 @@ def BCN_connect():
     NorW = BCN.recv(1024).decode()
     if NorW == "N or W":
         BCN.send("W".encode('utf-8'))   # Sending 'N' for Webserver
+        time.sleep(1)
+        
     return BCN    
 
 def sign_up(user_info:dict):
