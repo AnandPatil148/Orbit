@@ -4,7 +4,7 @@ import datetime
 from BlockChain import *
 
 # Function to handle Web SERVERS' connection
-def web_server_handler(SERVER: socket.socket, addr, Orbit:Blockchain, encodeFormat:str, Node_User:str, WebServers:list):
+def web_server_handler( SERVER: socket.socket, addr, Orbit:Blockchain, encodeFormat:str, Node_User:str, WebServers:list):
     while True:
         
         t = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -24,17 +24,20 @@ def web_server_handler(SERVER: socket.socket, addr, Orbit:Blockchain, encodeForm
                 blockstoget = dataString.split(" ")[1]
                 roomname = dataString.split(" ")[3]
                 
-                data = Orbit.get_block(int(blockstoget), roomname) #Data of one Block in form of dict
+                blocks = Orbit.get_blocks(int(blockstoget), roomname) #Data of Blocks in form of dict
                 
+                data = [b.get("Data") for b in blocks]
                     
                 # Send back the Data in JSON Formated string
                 dataString = json.dumps(data) #convert to JSON Formated string
                 SERVER.send(dataString.encode(encodeFormat)) #sends the data to the SERVER
-                print(f"{t}: Data Sent To SERVER {addr}")
+                print(f"{t}: WebServer {addr} Block Data Sent")
             
             elif dataString.startswith("AUTH"):
                 sub_command = dataString.split(" ")[1]
                 
+                # Authentication Commands 
+                # Register User
                 if sub_command == "REGISTER":
                     
                     auth_data = json.loads(dataString.split("!")[1]) #Getting the user credentials from message
@@ -59,6 +62,7 @@ def web_server_handler(SERVER: socket.socket, addr, Orbit:Blockchain, encodeForm
                         
                         continue
                 
+                # Login User
                 elif sub_command == "LOGIN":
                     
                     # User tries to login with username and password
@@ -151,19 +155,10 @@ def web_server_handler(SERVER: socket.socket, addr, Orbit:Blockchain, encodeForm
                     mintedBy=Node_User
                     )
                 Orbit.add_block(block, isRoomBlock=False)
+                print(f"{t}: WebServer {addr} MINTED block")
                 
-            '''
-            # Mintes a block on the Blockchain
-            elif dataString.startswith("MINT"):
-                block_data = dataString.split(" ")[1]
-                data = json.loads(block_data) #data is a disctionary here
-
-                block = Block(len(Orbit.chain), data.get("TimeStamp"), data)
-                Orbit.add_block(block, roomBlockOrNot=False)
-            '''
-            
         except Exception as msg:
-            print (f'{t}: {SERVER.getpeername()} has disconnected with msg {msg}')      
+            print (f'{t}: WebServer {addr} has disconnected with msg {msg}')      
             WebServers.remove(SERVER)
             SERVER.close()
             break

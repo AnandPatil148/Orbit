@@ -149,7 +149,7 @@ class Blockchain():
                 b = Block.to_block(b_dict)
                 
                 if b.block_type=="USER":
-                    self.users_count = b.data["USERID"]
+                    self.users_count+=1
                 else :
                     self.posts_count+=1
                     
@@ -363,7 +363,7 @@ class Blockchain():
         
         return True
     
-    def get_block(self, nOfBlock, roomname) -> list:
+    def get_blocks(self, nOfBlock, roomname) -> list:
         blocksList = []
         
         for  block in reversed(self.chain):

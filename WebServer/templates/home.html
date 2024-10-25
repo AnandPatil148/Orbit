@@ -1,0 +1,45 @@
+{% extends "baseX.html" %}
+
+{% block title %} Home Page {% endblock %}
+
+{% block body %}
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+          {% for msg in messages %}
+              <div class="alert alert-success" role="alert">
+                {{msg}}
+              </div>
+          {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <main>
+        <div class="scrollbar"></div>
+        <div class="container">
+          <p>
+            In the enchanted world of frontend development, pixels and code guide your design journey. Entranced by the dance of colors, shapes unfold on the digital canvas. Every line of code is a spell, weaving functionality and aesthetics into an immersive digital tale.</p>
+          <p>
+            In the enchanted world of frontend development, pixels and code guide your design journey. Entranced by the dance of colors, shapes unfold on the digital canvas. Every line of code is a spell, weaving functionality and aesthetics into an immersive digital tale.</p>
+          <p>
+            In the enchanted world of frontend development, pixels and code guide your design journey. Entranced by the dance of colors, shapes unfold on the digital canvas. Every line of code is a spell, weaving functionality and aesthetics into an immersive digital tale.</p>
+          <p>
+            In the enchanted world of frontend development, pixels and code guide your design journey. Entranced by the dance of colors, shapes unfold on the digital canvas. Every line of code is a spell, weaving functionality and aesthetics into an immersive digital tale.</p>
+        </div>
+    </main>
+
+    <div class="container-fluid">
+        
+        <h1>Welcome to Orbit!</h1>
+        <p>This is a simple posting website created using Flask.</p>
+        <p>Login or SignUp to start exploring</p>
+        
+        
+        <p id="demo">This is a simple website created using Flask.</p>
+        <button type="button" onclick="myFunction()">Try it</button>
+    
+        
+        
+    </div>
+
+{% endblock %}
