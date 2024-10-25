@@ -177,8 +177,59 @@ def user():
         return redirect(url_for("login"))
     
     
-@app.route("/room/<roomname>")
+@app.route("/room/<roomname>", methods = ["GET", "POST"])
 def room(roomname):
+    
+    if request.method == "POST":
+        message = request.get_json()["POSTMSG"]
+        
+               
+        NAME = session["NAME"]
+        UserID = session["USERID"]
+        
+        API.mint_blocks(UserID,NAME, message, roomname)
+        
+        return jsonify({"message": "success"})
+        # return redirect(url_for("newpost", roomname = roomname))
+    
+    else:
+        #check if user has logged in
+        if "USERID" not in session:  
+            return redirect(url_for('login'))  
+        
+        else:
+            #Check if User can access room
+            ROOMS = session["ROOMS"]
+            if roomname not in ROOMS: 
+                flash("You don't have permission to view this page."  , "warning")
+                return redirect(url_for("index"))
+        
+            else:
+                
+                nOfBlocks = request.args.get("nOfBlocks")
+                
+                #checks if noOfBlocks is null or 0
+                if nOfBlocks == None or nOfBlocks == 'None':
+                    nOfBlocks = 3
+                else:
+                    try:
+                        nOfBlocks = int(nOfBlocks)
+                    except:
+                        flash("Invalid number of blocks entered.", "error")
+                        return redirect(url_for("room", roomname=roomname))
+                
+                response = API.get_blocks(nOfBlocks, roomname)
+                
+                if response[0]:
+                    BlocksData = response[1]
+                
+                else:
+                    BlocksData = []
+                
+                return render_template("room.html", roomname = roomname, ROOMS = session["ROOMS"], nOfBlocks=nOfBlocks, data_list = BlocksData)
+
+@app.route("/room/<roomname>/latestpost" , methods=["GET"])
+def latestpost(roomname):
     #check if user has logged in
     if "USERID" not in session:  
         return redirect(url_for('login'))  
@@ -189,7 +240,7 @@ def room(roomname):
         if roomname not in ROOMS: 
             flash("You don't have permission to view this page."  , "warning")
             return redirect(url_for("index"))
-      
+    
         else:
             
             nOfBlocks = request.args.get("nOfBlocks")
@@ -207,37 +258,12 @@ def room(roomname):
             response = API.get_blocks(nOfBlocks, roomname)
             
             if response[0]:
-                BlockData = response[1]
+                BlocksData = response[1]
             
             else:
-                BlockData = []
-            
-            return render_template("room.html", roomname = roomname, ROOMS = session["ROOMS"], nOfBlocks=nOfBlocks, data_list = BlockData)
+                BlocksData = []
+    return jsonify(BlocksData)
 
-
-@app.route("/room/<roomname>/newpost/" , methods=["GET", "POST"])
-def newpost(roomname):
-    
-    #check if user has logged in
-    if request.method == "POST":
-        
-        message = request.form.get("POSTMSG", "")
-        
-        #check if message if null or not 
-        if message == "":
-            flash("Message cannot be empty!","danger")
-            return redirect(url_for("newpost", roomname = roomname))
-        
-        NAME = session["NAME"]
-        UserID = session["USERID"]
-        
-        API.mint_blocks(UserID,NAME, message, roomname)
-        
-        return redirect(url_for("room", roomname = roomname))
-        
-    else:
-       return render_template("newpost.html", ROOMS = session["ROOMS"])
-    
 @app.route("/logout/")
 def logout():
     if "NAME" in session:
@@ -254,4 +280,4 @@ def logout():
 
 #socketIO.run(app=app, host='0.0.0.0', port=8080, debug=True)
 #app.run(host = '0.0.0.0', port = 8080, debug = True)
-#flask run --debug -h "0.0.0.0" -p 8080
+#flask run --debug -h "0.0.0.0" -p 80

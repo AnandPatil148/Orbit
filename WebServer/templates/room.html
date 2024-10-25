@@ -61,6 +61,7 @@
 <!-- Gets recent posts from BCN server -->
 
 <script>
+
   document.addEventListener('DOMContentLoaded', function() {
     
     //Convert Serialized Dictionary in python to JS Dict object
@@ -70,23 +71,149 @@
     {
       displayPosts(data[i]);//Displays card
     }
-
+    
     document.getElementById("posts-display").appendChild(document.createElement('br'));//Add break after header
 
-    var morePostsBtb = document.createElement("a");
-    morePostsBtb.className = "btn btn-primary";
-    morePostsBtb.href = "/room/{{roomname}}?nOfBlocks={{ nOfBlocks + 3 }}";
-    morePostsBtb.innerHTML = "Load More Posts";
-    document.getElementById("posts-display").appendChild(document.createElement('br'));//Add break after all the post cards
-    document.getElementById("posts-display").appendChild(morePostsBtb);
-
   });
+
+  let form = document.getElementById('MsgForm');
+
+  // Submit form to Flask
+  form.addEventListener('submit', function(event) {
+
+    event.preventDefault();
+
+    // Gather form data
+    const formData = new FormData(form);
+    const msg = formData.get('POSTMSG');
+
+    // Validate form data
+    if (msg.length === 0) {
+        //alert('Please select at least one chapter.');
+        event.preventDefault();
+        return;
+    }
+
+    const payload = {
+        POSTMSG: msg
+    };
+
+    fetch('#', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if(!response.ok) {
+            alert('Failed to generate questions. Please try again.');
+        }
+        
+        return response.json();
+    })
+    .then(data => {
+
+        if(data.status === 'error') {
+            window.location.reload();
+        }
+
+        // Reset form
+        form.reset();
+
+        fetchLatestBlock();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
+
+  let TimeStamp = "";  // Track the last displayed block
+  let pollingInterval = 5000; // Default: 5 seconds
+
+  let isUserActive = true;  // Track whether the user is active
+  let idleTimeout;  // Stores the timer for detecting idle state
+  let pollIntervalId;  // Stores the interval timer
+
+
+  // Function to fetch the latest block from the Flask API
+  async function fetchLatestBlock() {
+      try {
+          const response = await fetch('/room/{{roomname}}/latestpost?nOfBlocks={{ nOfBlocks }}');
+          const blocks = await response.json();
+
+          //console.log(blocks);
+
+          // Check if there's a new block
+          if (blocks[0].TimeStamp  != TimeStamp) { 
+
+              TimeStamp = blocks[0].TimeStamp;
+              //console.log("New block found with TimeStamp: " + TimeStamp);
+
+              document.getElementById("posts-display").innerHTML = '';
+
+              for(var i = 0; i <  blocks.length; i++)
+              {
+                displayPosts(blocks[i]);//Displays card
+              }
+          }
+      } catch (error) {
+          console.error('Error fetching latest block:', error);
+      }
+  }
+
+  // Start the polling interval
+  function startPolling() {
+      pollIntervalId = setInterval(fetchLatestBlock, pollingInterval);
+  }
+
+  function stopPolling() {
+      clearInterval(pollIntervalId);
+  }
+
+  // Adjust the polling interval based on user activity
+  function adjustPollingInterval() {
+      if (isUserActive) {
+          pollingInterval = 1000;  // 1 second
+        } else {
+          pollingInterval = 50000;  // 50 seconds
+        }
+        stopPolling();
+        startPolling();
+  }
+
+  function userActivityDetect() {
+    isUserActive = true;
+    adjustPollingInterval(); // Switch to active polling
+    resetIdleTimer(); // Reset the idle timer
+  }
+
+  function resetIdleTimer() {
+    clearTimeout(idleTimeout);
+    idleTimeout = setTimeout( ()=> {
+      isUserActive = false;
+      adjustPollingInterval(); // Switch to idle polling
+    }, 20000); // 20 seconds
+  }
+
+
+  window.addEventListener('mousemove', resetIdleTimer);
+  window.addEventListener('keypress', resetIdleTimer);
+  window.addEventListener('scroll', resetIdleTimer);
+  window.addEventListener('touchmove', resetIdleTimer);
+  window.addEventListener('touchstart', resetIdleTimer);
+
 </script>
 
-<div  class='row'>
-  <div id="posts-display" class="col-md-8 offset-md-2">
-    
-    
+<div class="container-fluid">
+  <div  class='row'>
+    <div id="posts-display" class="col-md-8 offset-md-2">
+      
+      
+    </div>
+    <div class="col-md-8 offset-md-2">
+      <br>
+      <a class="btn btn-primary" href="/room/{{roomname}}?nOfBlocks={{ nOfBlocks + 3 }}"> Load More Posts </a>
   </div>
 </div>
 
