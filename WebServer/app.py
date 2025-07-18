@@ -2,7 +2,7 @@
 from flask import Flask, redirect, url_for, jsonify, request, render_template, session, flash
 from flask_socketio import SocketIO
 from datetime import timedelta
-import Orbit_NodeAPI as API
+from API import Orbit_Node_WebAPI as API
 import os
 import json
 
@@ -268,12 +268,13 @@ def latestpost(roomname):
 def logout():
     if "NAME" in session:
         NAME = session["NAME"]
-        flash(f"{NAME} Successfully Logged Out", "info")
+        
         
     session.pop("USERID", None)
     session.pop("NAME", None)
     session.pop("EMAIL", None)
     session.pop("ROOMS", None)
+    flash(f"{NAME} Successfully Logged Out", "info")
     return redirect(url_for("login"))
 
 

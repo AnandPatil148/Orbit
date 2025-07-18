@@ -331,7 +331,7 @@ class Blockchain():
             user_block = self.get_block(user_index)
     '''
        
-    def to_dict(self) -> dict:
+    def to_dict(self) -> list:
         """
         Convert the blockchain into a list of dictionaries for each block.
         """
